@@ -38,6 +38,11 @@ namespace ServiceBasedApplication.Services
             return await _context.Courses.ToListAsync();
         }
 
+        public async Task<Course> GetCourseById(int? id)
+        {
+            return await _context.Courses.FirstOrDefaultAsync(course => course.Id == id);
+        }
+
         public async Task RemoveCourse(int id)
         {
 

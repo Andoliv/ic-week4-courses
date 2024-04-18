@@ -9,7 +9,8 @@ namespace ServiceBasedApplication.Services
 
         Task<List<Course>> GetCourses();
 
-        Task RemoveCourse(int CourseId);
+        Task<Course> GetCourseById(int? CourseId);
 
+        Task RemoveCourse(int CourseId);
     }
 }

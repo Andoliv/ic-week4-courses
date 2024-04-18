@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ServiceBasedApplication.Models;
 using ServiceBasedApplication.Services;
+using ServiceBasedApplication.ViewModels;
 
 namespace ServiceBasedApplication.Controllers
 {
@@ -30,15 +31,14 @@ namespace ServiceBasedApplication.Controllers
         }
 
         // GET: Courses/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int id)
         {
             if (id == null || _context.Courses == null)
             {
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var course = _courseService.GetCourseById(id);
             
             if (course == null)
             {
@@ -59,15 +59,23 @@ namespace ServiceBasedApplication.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Title,Credits")] Course course)
+        public async Task<IActionResult> Create(CreateCourseRequest request)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                _context.Add(course);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return View(request);
             }
-            return View(course);
+
+            var course = new Course
+            {
+                Title = request.Title,
+                Credits = request.Credits
+            };
+
+            _context.Courses.Add(course);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Courses/Edit/5
@@ -78,8 +86,8 @@ namespace ServiceBasedApplication.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses.FindAsync(id);
-            
+            var course = await _courseService.GetCourseById(id);
+
             if (course == null)
             {
                 return NotFound();
@@ -130,8 +138,7 @@ namespace ServiceBasedApplication.Controllers
                 return NotFound();
             }
 
-            var course = await _context.Courses
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var course = await _courseService.GetCourseById(id);
             if (course == null)
             {
                 return NotFound();
@@ -149,7 +156,7 @@ namespace ServiceBasedApplication.Controllers
             {
                 return Problem("Entity set 'SchoolsDbContext.Courses'  is null.");
             }
-            var course = await _context.Courses.FindAsync(id);
+            var course = await _courseService.GetCourseById(id);
             if (course != null)
             {
                 _context.Courses.Remove(course);
