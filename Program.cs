@@ -1,6 +1,7 @@
 using ServiceBasedApplication.Models;
 using ServiceBasedApplication.Services;
 using Microsoft.EntityFrameworkCore;
+using ServiceBasedApplication.Mapping;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 
 builder.Services.AddDbContext<SchoolsDbContext>(options =>
               options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 var app = builder.Build();
 
@@ -21,6 +23,8 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

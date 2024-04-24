@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ServiceBasedApplication.Models;
+﻿namespace ServiceBasedApplication.Models;
 
 public class Enrollment
 {
@@ -14,6 +11,6 @@ public class Enrollment
     public int StudentId { get; set; }
 
     public virtual Course Course { get; set; } = null!;
-    
+
     public virtual Student Student { get; set; } = null!;
 }

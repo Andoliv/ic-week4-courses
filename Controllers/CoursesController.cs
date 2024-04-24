@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ServiceBasedApplication.Models;
 using ServiceBasedApplication.Services;
 using ServiceBasedApplication.ViewModels;
 
@@ -12,40 +7,38 @@ namespace ServiceBasedApplication.Controllers
 {
     public class CoursesController : Controller
     {
-        private readonly SchoolsDbContext _context;
         private readonly ICourseService _courseService;
 
-        public CoursesController(SchoolsDbContext context, ICourseService courseService)
+        public CoursesController(ICourseService courseService)
         {
-            _context = context;
             _courseService = courseService;
-    }
+        }
 
         // GET: Courses
         public async Task<IActionResult> Index()
         {
-            var _courses = await _courseService.GetCourses();
+            var courseViewModels = await _courseService.GetCourses();
 
-              return _courses != null ? 
-                          View(_courses) : Problem("Entity set 'SchoolsDbContext.Courses'  is null.");
+            return courseViewModels != null ?
+                        View(courseViewModels) : Problem("Entity set 'SchoolsDbContext.Courses'  is null.");
         }
 
         // GET: Courses/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            if (id == null || _context.Courses == null)
+            if (_courseService.GetCourses == null)
             {
                 return NotFound();
             }
 
-            var course = _courseService.GetCourseById(id);
-            
-            if (course == null)
+            var courseViewModel = await _courseService.GetCourseById(id);
+
+            if (courseViewModel == null)
             {
                 return NotFound();
             }
 
-            return View(course);
+            return View(courseViewModel);
         }
 
         // GET: Courses/Create
@@ -59,21 +52,14 @@ namespace ServiceBasedApplication.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateCourseRequest request)
+        public async Task<IActionResult> Create(CourseViewModel courseViewModel)
         {
             if (!ModelState.IsValid)
             {
-                return View(request);
+                return View(courseViewModel);
             }
 
-            var course = new Course
-            {
-                Title = request.Title,
-                Credits = request.Credits
-            };
-
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
+            await _courseService.AddCourse(courseViewModel);
 
             return RedirectToAction(nameof(Index));
         }
@@ -81,18 +67,19 @@ namespace ServiceBasedApplication.Controllers
         // GET: Courses/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null || _context.Courses == null)
+            if (id == null || _courseService.GetCourses() == null)
             {
                 return NotFound();
             }
 
-            var course = await _courseService.GetCourseById(id);
+            var courseViewModel = await _courseService.GetCourseById(id);
 
-            if (course == null)
+            if (courseViewModel == null)
             {
                 return NotFound();
             }
-            return View(course);
+
+            return View(courseViewModel);
         }
 
         // POST: Courses/Edit/5
@@ -100,51 +87,52 @@ namespace ServiceBasedApplication.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Credits")] Course course)
+        public async Task<IActionResult> Edit(int id, CourseViewModel courseViewModel)
         {
-            if (id != course.Id)
+            if (id != courseViewModel.Id)
             {
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(course);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CourseExists(course.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return View(courseViewModel);
             }
-            return View(course);
+
+            try
+            {
+                courseViewModel = await _courseService.UpdateCourse(courseViewModel);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_courseService.CourseExists(courseViewModel.Id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: Courses/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null || _context.Courses == null)
+            if (id == null || _courseService.GetCourses == null)
             {
                 return NotFound();
             }
 
-            var course = await _courseService.GetCourseById(id);
-            if (course == null)
+            var courseViewModel = await _courseService.GetCourseById(id);
+            if (courseViewModel == null)
             {
                 return NotFound();
             }
 
-            return View(course);
+            return View(courseViewModel);
         }
 
         // POST: Courses/Delete/5
@@ -152,23 +140,18 @@ namespace ServiceBasedApplication.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (_context.Courses == null)
+            if (_courseService.GetCourses == null)
             {
                 return Problem("Entity set 'SchoolsDbContext.Courses'  is null.");
             }
-            var course = await _courseService.GetCourseById(id);
-            if (course != null)
-            {
-                _context.Courses.Remove(course);
-            }
-            
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+            var courseViewModel = await _courseService.GetCourseById(id);
 
-        private bool CourseExists(int id)
-        {
-          return (_context.Courses?.Any(e => e.Id == id)).GetValueOrDefault();
+            if (courseViewModel != null)
+            {
+                await _courseService.RemoveCourse(courseViewModel.Id);
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

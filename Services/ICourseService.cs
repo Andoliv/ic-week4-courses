@@ -1,16 +1,20 @@
-﻿using ServiceBasedApplication.Models;
+﻿using ServiceBasedApplication.ViewModels;
 
 namespace ServiceBasedApplication.Services
 {
     public interface ICourseService
     {
         //note we don't need async in the interface
-        Task<Models.Course> AddUpdateCourse(Models.Course course);
+        Task<CourseViewModel> AddCourse(CourseViewModel course);
 
-        Task<List<Course>> GetCourses();
+        Task<CourseViewModel> UpdateCourse(CourseViewModel course);
 
-        Task<Course> GetCourseById(int? CourseId);
+        Task<IEnumerable<CourseViewModel>> GetCourses();
+
+        Task<CourseViewModel> GetCourseById(int? CourseId);
 
         Task RemoveCourse(int CourseId);
+
+        bool CourseExists(int id);
     }
 }
